@@ -1,0 +1,140 @@
+Started by user Jaydeep Chakraborty
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Still waiting to schedule task
+‘appserver-agent’ is offline
+Running on appserver-agent in /home/ubuntu/Jenkins-agent/workspace/upgrade-project
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout Code)
+[Pipeline] git
+The recommended git tool is: NONE
+No credentials specified
+Fetching changes from the remote Git repository
+ > git rev-parse --resolve-git-dir /home/ubuntu/Jenkins-agent/workspace/upgrade-project/.git # timeout=10
+ > git config remote.origin.url https://github.com/Jaydeepc1985/voting-app.git # timeout=10
+Fetching upstream changes from https://github.com/Jaydeepc1985/voting-app.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git fetch --tags --force --progress -- https://github.com/Jaydeepc1985/voting-app.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+Checking out Revision 6fb92395898dd1d89f5958c893376d4935109b7a (refs/remotes/origin/master)
+Commit message: "voting app push"
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 6fb92395898dd1d89f5958c893376d4935109b7a # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git branch -D master # timeout=10
+ > git checkout -b master 6fb92395898dd1d89f5958c893376d4935109b7a # timeout=10
+ > git rev-list --no-walk 6fb92395898dd1d89f5958c893376d4935109b7a # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build Docker Image)
+[Pipeline] sh
++ docker build -t jaydeepc1985/voting-app:latest vote/
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  161.3kB
+
+Step 1/9 : FROM python:3.9-slim
+ ---> 07f17bb34a51
+Step 2/9 : RUN ls
+ ---> Using cache
+ ---> 26e5fe5221f3
+Step 3/9 : RUN apt-get update     && apt-get install -y --no-install-recommends     curl     && rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> aee41cb54a41
+Step 4/9 : WORKDIR /app
+ ---> Using cache
+ ---> 2ebcd63a7422
+Step 5/9 : COPY requirements.txt /app/requirements.txt
+ ---> Using cache
+ ---> e2eaec78ab0e
+Step 6/9 : RUN pip install -r requirements.txt
+ ---> Using cache
+ ---> e098efa4cffe
+Step 7/9 : COPY . .
+ ---> Using cache
+ ---> e5cea6c5769b
+Step 8/9 : EXPOSE 80
+ ---> Using cache
+ ---> 8beb0447e572
+Step 9/9 : CMD ["gunicorn", "app:app", "-b", "0.0.0.0:80", "--log-file", "-", "--access-logfile", "-", "--workers", "4", "--keep-alive", "0"]
+ ---> Using cache
+ ---> 329cc337dcff
+Successfully built 329cc337dcff
+Successfully tagged jaydeepc1985/voting-app:latest
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Push Docker Image)
+[Pipeline] withCredentials
+Masking supported pattern matches of $DOCKER_PASS
+[Pipeline] {
+[Pipeline] sh
++ echo ****
++ docker login -u jaydeepc1985 --password-stdin
+WARNING! Your password will be stored unencrypted in /home/ubuntu/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credential-stores
+
+Login Succeeded
++ docker push jaydeepc1985/voting-app:latest
+The push refers to repository [docker.io/jaydeepc1985/voting-app]
+424ae3259c4c: Preparing
+c58cab94d795: Preparing
+d1fa22ed2b8a: Preparing
+04af02a23479: Preparing
+22798a89d4c4: Preparing
+f0d3b09df3b4: Preparing
+b9a50396677d: Preparing
+be76169c9d2c: Preparing
+7fb72a7d1a8e: Preparing
+f0d3b09df3b4: Waiting
+b9a50396677d: Waiting
+be76169c9d2c: Waiting
+7fb72a7d1a8e: Waiting
+22798a89d4c4: Layer already exists
+c58cab94d795: Layer already exists
+d1fa22ed2b8a: Layer already exists
+04af02a23479: Layer already exists
+424ae3259c4c: Layer already exists
+f0d3b09df3b4: Layer already exists
+b9a50396677d: Layer already exists
+7fb72a7d1a8e: Layer already exists
+be76169c9d2c: Layer already exists
+latest: digest: sha256:258f4f63c9dccee94834b1c0e516db98005330c86da6b0957bbe6278bb9143d2 size: 2203
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Remove Old Container)
+[Pipeline] sh
++ docker rm -f voting-app
+voting-app
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run New Container)
+[Pipeline] sh
++ docker run -d --name voting-app -p 7070:80 jaydeepc1985/voting-app:latest
+2729d1fe51174fb7dfeea3832fdc06497a01400d7bd3ff647640dfb882dd92d5
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+Pipeline execution complete.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
